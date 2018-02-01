@@ -1,0 +1,13 @@
+{
+  "name": "object-logger",
+  "version": "1.0.0",
+  "main": "index.es6",
+  "private": true,
+  "license": "UNLICENSED",
+  "dependencies": {
+    "bluebird": "^3.5.1",
+    "longjohn": "^0.2.12",
+    "nedb": "^1.8.0",
+    "winston": "^3.0.0-rc1"
+  }
+}
