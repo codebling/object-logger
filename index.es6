@@ -28,6 +28,7 @@ const runQuery = {run: {$exists: true}};
 let run = 0;
 
 function getInstance(options) {
+  options = options || {};
 
   return db.loadDatabaseAsync()
     .then(function() {
@@ -96,6 +97,8 @@ class ObjectLogger {
   }
 
   log(options, primaryObject, extraObject) {
+    options = options || {};
+
     let document = {};
     document.createdAt = options.createdAt || new Date().toJSON();
     document.logLevel = 'logLevel' in options ? parseLogLevel(options.logLevel, this.logLevels) : parseLogLevel(this.defaultLogLevel, this.logLevels);
