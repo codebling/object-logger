@@ -22,30 +22,6 @@ const defaultLevels = {
 };
 
 
-/*
-ObjectLogger(options) {
-  if('logLevels' in options)
-
-  if(nedb)
-    //check if instance or just set to use that
-    if(filename)
-      //use filename or default
-  if(mongodb)
-    if(hostname)
-
-  this.db = lazy init db here and only instatiate storage once
-  look out for dependencies trying to set the storage, how can we solve this?
-
-  //accept a winston transport or an alternative logger
-
-  //allow multiple instances which share db but only
-  this.defaultComponent = options.defaultcomponent
-
-  if(options.stacktrace) //true or false, take a stack trace every log
-
-}
- */
-
 require('longjohn'); //long stack traces
 
 const runQuery = {run: {$exists: true}};
@@ -81,10 +57,39 @@ function getInstance(options) {
     });
 }
 
-function log(options, primaryObject, extraObject) {
+
+class ObjectLogger {
+  constructor(options) {
+    if('logLevels' in options)
+      this.logLevels = options.logLevels;
+    else
+      this.logLevels = defaultLevels;
+
+    /*
+
+    if(nedb)
+      //check if instance or just set to use that
+      if(filename)
+        //use filename or default
+    if(mongodb)
+      if(hostname)
+
+    this.db = lazy init db here and only instatiate storage once
+    look out for dependencies trying to set the storage, how can we solve this?
+
+    //accept a winston transport or an alternative logger
+
+    //allow multiple instances which share db but only
+    this.defaultComponent = options.defaultcomponent
+
+    if(options.stacktrace) //true or false, take a stack trace every log
+    */
+
+  }
+log(options, primaryObject, extraObject) {
   let document = {};
   document.createdAt = options.createdAt || new Date().toJSON();
-  'logLevel' in options ? document.logLevel = parseLogLevel(options.logLevel) : null;
+  'logLevel' in options ? document.logLevel = parseLogLevel(options.logLevel, this.logLevels) : null;
   'component' in options ? document.component = options.component : null;
 
   document.stackTrace = new Error(); //a stack trace of "here", in addition to any stack traces that may be in the objects
@@ -97,10 +102,11 @@ function log(options, primaryObject, extraObject) {
 
   logger.log(document.logLevel, JSON.stringify(document.primary));
 }
+}
 
-function parseLogLevel(logLevel) {
-  if(logLevel in levels) //it's a string value that's a key
-    return levels[logLevel] + 0.0;
+function parseLogLevel(logLevel, logLevels) {
+  if(logLevel in logLevels) //it's a string value that's a key
+    return logLevels[logLevel] + 0.0;
   if(logLevel === +logLevel) //it's a number
     return logLevel + 0.0;
 
