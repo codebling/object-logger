@@ -70,6 +70,9 @@ class ObjectLogger {
     else
       this.defaultLogLevel = 6;
 
+    if('defaultComponent' in options)
+      this.defaultComponent = options.defaultComponent;
+
     /*
 
     if(nedb)
@@ -96,6 +99,7 @@ class ObjectLogger {
     let document = {};
     document.createdAt = options.createdAt || new Date().toJSON();
     document.logLevel = 'logLevel' in options ? parseLogLevel(options.logLevel, this.logLevels) : parseLogLevel(this.defaultLogLevel, this.logLevels);
+    'defaultComponent' in this ? document.component = this.defaultComponent : null;
     'component' in options ? document.component = options.component : null;
 
     document.stackTrace = new Error(); //a stack trace of "here", in addition to any stack traces that may be in the objects
