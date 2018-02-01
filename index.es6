@@ -86,22 +86,23 @@ class ObjectLogger {
     */
 
   }
-log(options, primaryObject, extraObject) {
-  let document = {};
-  document.createdAt = options.createdAt || new Date().toJSON();
-  'logLevel' in options ? document.logLevel = parseLogLevel(options.logLevel, this.logLevels) : null;
-  'component' in options ? document.component = options.component : null;
 
-  document.stackTrace = new Error(); //a stack trace of "here", in addition to any stack traces that may be in the objects
+  log(options, primaryObject, extraObject) {
+    let document = {};
+    document.createdAt = options.createdAt || new Date().toJSON();
+    'logLevel' in options ? document.logLevel = parseLogLevel(options.logLevel, this.logLevels) : null;
+    'component' in options ? document.component = options.component : null;
 
-  document.primary = primaryObject;
+    document.stackTrace = new Error(); //a stack trace of "here", in addition to any stack traces that may be in the objects
 
-  document.extra = extraObject;
+    document.primary = primaryObject;
 
-  db.insert(document);
+    document.extra = extraObject;
 
-  logger.log(document.logLevel, JSON.stringify(document.primary));
-}
+    db.insert(document);
+
+    logger.log(document.logLevel, JSON.stringify(document.primary));
+  }
 }
 
 function parseLogLevel(logLevel, logLevels) {
