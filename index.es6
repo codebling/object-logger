@@ -46,7 +46,7 @@ function getInstance(options) {
     })
     .then(function(result) {
       if(result.length > 0)
-        run = result[0].run;
+        run = ++result[0].run;
       return db.updateAsync(runQuery, {run: run}, {upsert: true});
     })
     .then(function(result) {
