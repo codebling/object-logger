@@ -1,6 +1,7 @@
 const Promise = require('bluebird');
 const Datastore = require('nedb');
 const winston = require('winston');
+const StackTrace = require('stacktrace-js');
 
 let db = Promise.promisifyAll(new Datastore({filename: './log.nedb'}));
 
@@ -108,15 +109,16 @@ class ObjectLogger {
 
     document.run = run;
 
-    document.stackTrace = new Error(); //a stack trace of "here", in addition to any stack traces that may be in the objects
-
     document.primary = primaryObject;
 
     document.extra = extraObject;
 
-    db.insert(document);
-
-    winstonLogger.log(getTextualLevel(document.logLevel, this.logLevels), document.primary);
+    StackTrace.get() //a stack trace of "here", in addition to any stack traces that may be in the objects
+      .then(stacktrace => {
+        document.stacktrace = stacktrace;
+        db.insert(document);
+        winstonLogger.log(getTextualLevel(document.logLevel, this.logLevels), document);
+      });
   }
 }
 
