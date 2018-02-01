@@ -4,7 +4,7 @@ const winston = require('winston');
 
 let db = Promise.promisifyAll(new Datastore({filename: './log.nedb'}));
 
-const logger = winston.createLogger({
+const winstonLogger = winston.createLogger({
   transports: [
     new winston.transports.Console()
   ]
@@ -114,7 +114,7 @@ class ObjectLogger {
 
     db.insert(document);
 
-    logger.log(document.logLevel, JSON.stringify(document.primary));
+    winstonLogger.log(document.logLevel, JSON.stringify(document.primary));
   }
 }
 
