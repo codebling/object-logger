@@ -106,6 +106,8 @@ class ObjectLogger {
     'defaultComponent' in this ? document.component = this.defaultComponent : null;
     'component' in options ? document.component = options.component : null;
 
+    document.run = run;
+
     document.stackTrace = new Error(); //a stack trace of "here", in addition to any stack traces that may be in the objects
 
     document.primary = primaryObject;
