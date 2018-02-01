@@ -51,25 +51,35 @@ require('longjohn'); //long stack traces
 const runQuery = {run: {$exists: true}};
 let run = 0;
 
-db.loadDatabaseAsync()
-  .then(function() {
-    return db.ensureIndexAsync({fieldName: 'createdAt'});
-  })
-  .then(function() {
-    return db.ensureIndexAsync({fieldName: 'logLevel'});
-  })
-  .then(function() {
-    return db.ensureIndexAsync({fieldName: 'component'});
-  })
-  .then(function() {
-    return db.findAsync(runQuery);
-  })
-  .then(function(result) {
-    if(result.length > 0)
-      run = result[0].run;
-    return db.updateAsync(runQuery, {run: run}, {upsert: true});
-  })
+function getInstance(options) {
 
+  return db.loadDatabaseAsync()
+    .then(function() {
+      return db.ensureIndexAsync({fieldName: 'createdAt'});
+    })
+    .then(function() {
+      return db.ensureIndexAsync({fieldName: 'logLevel'});
+    })
+    .then(function() {
+      return db.ensureIndexAsync({fieldName: 'component'});
+    })
+    .then(function() {
+      return db.findAsync(runQuery);
+    })
+    .then(function(result) {
+      if(result.length > 0)
+        run = result[0].run;
+      return db.updateAsync(runQuery, {run: run}, {upsert: true});
+    })
+    .then(function(result) {
+      options.db = db;
+      let objectLogger = new ObjectLogger(options);
+      if(options.cb)
+        options.cb(objectLogger);
+
+      return objectLogger;
+    });
+}
 
 function log(options, primaryObject, extraObject) {
   let document = {};
@@ -96,3 +106,6 @@ function parseLogLevel(logLevel) {
 
   throw new Error('Attempt to use an unknown error level')
 }
+
+module.exports = getInstance;
+module.exports.getInstance = getInstance;
