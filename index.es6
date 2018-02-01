@@ -10,7 +10,7 @@ const logger = winston.createLogger({
   ]
 });
 
-const defaultLevels = {
+const defaultLogLevels = {
   emerg: 0,
   alert: 1,
   crit: 2,
@@ -65,7 +65,7 @@ class ObjectLogger {
     if('logLevels' in options)
       this.logLevels = options.logLevels;
     else
-      this.logLevels = defaultLevels;
+      this.logLevels = defaultLogLevels;
 
     if('defaultLogLevel' in options)
       this.defaultLogLevel = options.defaultLogLevel;
