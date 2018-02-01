@@ -21,7 +21,7 @@ const defaultLogLevels = {
   debug: 7
 };
 
-const defaultLogLevel = 2;
+const defaultLogLevel = 6;
 
 require('longjohn'); //long stack traces
 
