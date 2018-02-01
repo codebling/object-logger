@@ -114,7 +114,7 @@ class ObjectLogger {
 
     db.insert(document);
 
-    winstonLogger.log(document.logLevel, JSON.stringify(document.primary));
+    winstonLogger.log(getTextualLevel(document.logLevel, this.logLevels), document.primary);
   }
 }
 
@@ -125,6 +125,14 @@ function parseLogLevel(logLevel, logLevels) {
     return logLevel + 0.0;
 
   throw new Error('Attempt to use an unknown error level')
+}
+
+function getTextualLevel(numericalLevel, logLevels) {
+  for(key in logLevels) {
+    if(logLevels[key] === numericalLevel) {
+      return key;
+    }
+  }
 }
 
 module.exports = getInstance;
