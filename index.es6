@@ -1,3 +1,4 @@
+require('longjohn'); //long stack traces
 const Promise = require('bluebird');
 const Datastore = require('nedb');
 const winston = require('winston');
@@ -23,8 +24,6 @@ const defaultLogLevels = {
 };
 
 const defaultLogLevel = 6;
-
-require('longjohn'); //long stack traces
 
 const runQuery = {run: {$exists: true}};
 let run = 0;
