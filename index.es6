@@ -21,6 +21,7 @@ const defaultLevels = {
   debug: 7
 };
 
+const defaultLogLevel = 2;
 
 require('longjohn'); //long stack traces
 
@@ -69,7 +70,7 @@ class ObjectLogger {
     if('defaultLogLevel' in options)
       this.defaultLogLevel = options.defaultLogLevel;
     else
-      this.defaultLogLevel = 6;
+      this.defaultLogLevel = defaultLogLevel;
 
     if('defaultComponent' in options)
       this.defaultComponent = options.defaultComponent;
