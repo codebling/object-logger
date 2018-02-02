@@ -1,16 +1,10 @@
 require('longjohn'); //long stack traces
 const Promise = require('bluebird');
 const Datastore = require('nedb');
-const winston = require('winston');
+const Debug = require('debug');
 const StackTrace = require('stacktrace-js');
 
 let db = Promise.promisifyAll(new Datastore({filename: './log.nedb'}));
-
-const winstonLogger = winston.createLogger({
-  transports: [
-    new winston.transports.Console()
-  ]
-});
 
 const defaultLogLevels = {
   emerg: 0,
@@ -72,9 +66,12 @@ class ObjectLogger {
     else
       this.defaultLogLevel = defaultLogLevel;
 
-    if('defaultComponent' in options)
-      this.defaultComponent = options.defaultComponent;
+    this.defaultComponent = options.defaultComponent;
+    this.debugMap = new Map();
+    this.debugMap.set(this.defaultComponent, Debug(this.defaultComponent));
 
+    this.isBusy = false;
+    
     /*
 
     if(nedb)
@@ -103,8 +100,13 @@ class ObjectLogger {
     let document = {};
     document.createdAt = options.createdAt || new Date().toJSON();
     document.logLevel = 'logLevel' in options ? parseLogLevel(options.logLevel, this.logLevels) : parseLogLevel(this.defaultLogLevel, this.logLevels);
-    'defaultComponent' in this ? document.component = this.defaultComponent : null;
+    document.component = this.defaultComponent;
     'component' in options ? document.component = options.component : null;
+    let debug;
+    if(!this.debugMap.has(document.component)) {
+      this.debugMap.set(document.component, Debug(document.component));
+    }
+    debug = this.debugMap.get(document.component);
 
     document.run = run;
 
@@ -112,12 +114,10 @@ class ObjectLogger {
 
     document.extra = extraObject;
 
-    StackTrace.get() //a stack trace of "here", in addition to any stack traces that may be in the objects
-      .then(stacktrace => {
-        document.stacktrace = stacktrace;
-        db.insert(document);
-        winstonLogger.log(getTextualLevel(document.logLevel, this.logLevels), document);
-      });
+    document.stacktrace = StackTrace.getSync(); //a stack trace of "here", in addition to any stack traces that may be in the objects
+
+    debug(document.primary);
+    db.insert(document);
   }
 }
 

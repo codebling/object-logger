@@ -6,9 +6,9 @@
   "license": "UNLICENSED",
   "dependencies": {
     "bluebird": "^3.5.1",
+    "debug": "^3.1.0",
     "longjohn": "github:drauggres/longjohn",
     "nedb": "^1.8.0",
-    "stacktrace-js": "^2.0.0",
-    "winston": "^3.0.0-rc1"
+    "stacktrace-js": "^2.0.0"
   }
 }
