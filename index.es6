@@ -1,3 +1,4 @@
+const path = require('path');
 require('longjohn'); //long stack traces
 const Promise = require('bluebird');
 const Datastore = require('nedb');
@@ -57,7 +58,7 @@ class ObjectLogger {
     else
       this.defaultLogLevel = defaultLogLevel;
 
-    this.defaultComponent = options.defaultComponent;
+    this.defaultComponent = 'defaultComponent' in options ? options.defaultComponent : path.basename(path.resolve('./'));
     this.debugMap = new Map();
     this.debugMap.set(this.defaultComponent, Debug(this.defaultComponent));
 
