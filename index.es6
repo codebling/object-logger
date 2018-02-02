@@ -20,19 +20,12 @@ const defaultLogLevel = 6;
 
 let stats;
 
-function fixStats(db) {
-  return Promise.fromCallback((cb) => db.find({stats: {$exists: false}}).sort({createdAt: 1}).exec(cb))
-    .then((results) => {
-      let updatePromises = [];
-      for(let result of results) {
-        let promise = db.updateAsync({_id: result._id},  {$set: {stats: Object.assign({}, stats)}});
-        updatePromises.push(promise);
-        ++stats.idInAll;
-        ++stats.idInRun;
-      }
-      return Promise.all(updatePromises);
-    })
-  ;
+function fixBufferStats(buffer) {
+  for(let log of buffer) {
+    log.stats = Object.assign({}, stats);
+    ++stats.idInAll;
+    ++stats.idInRun;
+  }
 }
 
 function init(db) {
@@ -85,9 +78,8 @@ class ObjectLogger {
 
     this.db = Promise.promisifyAll(new Datastore({filename: './log.nedb'}));
     this.busyPromise = init(this.db)
+      .then(() => fixBufferStats(this._buffer)) //fix the statless logs in buffer, if any.
       .then(() => this.busyPromise = null)
-      .then(() => this._flushBufferedLogs()) //force the first run
-      .then(() => fixStats(this.db)) //so that we can add the stats that were missing
     ;
 
     /*
