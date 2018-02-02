@@ -18,6 +18,8 @@ const defaultLogLevels = {
 
 const defaultLogLevel = 6;
 
+const dbMap = new Map();
+
 let stats;
 
 function fixBufferStats(buffer) {
@@ -85,13 +87,23 @@ class ObjectLogger {
 
     options.db = options.db || {type: 'nedb', options: {filename: './log.nedb'}};
 
-    this.db = dbConstructScript[options.db.type](options.db.options);
-    this.busyPromise = dbInitScripts[options.db.type](this.db)
-      .then(() => init(this.db))
-      .then(() => fixBufferStats(this._buffer)) //fix the statless logs in buffer, if any.
-      .then(() => this.busyPromise = null)
-    ;
+    this.sharedDb = dbMap.get(options.db);
+    if(!this.sharedDb) {
+      this.sharedDb = {
+        db: dbConstructScript[options.db.type](options.db.options),
+        isInitComplete: false
+      };
+      dbMap.set(options.db, this.sharedDb);
+    }
 
+    if(!this.sharedDb.isInitComplete) {
+      this.sharedDb.busyPromise = dbInitScripts[options.db.type](this.sharedDb.db)
+        .then(() => init(this.sharedDb.db))
+        .then(() => fixBufferStats(this._buffer)) //fix the statless logs in buffer, if any.
+        .then(() => this.sharedDb.busyPromise = null)
+        .then(() => this.sharedDb.isInitComplete = true)
+      ;
+    }
     /*
 
     if(nedb)
@@ -101,7 +113,7 @@ class ObjectLogger {
     if(mongodb)
       if(hostname)
 
-    this.db = lazy init db here and only instatiate storage once
+    this.sharedDb.db = lazy init db here and only instatiate storage once
     look out for dependencies trying to set the storage, how can we solve this?
 
     //accept a winston transport or an alternative logger
@@ -118,14 +130,14 @@ class ObjectLogger {
   }
   _flushBufferedLogs() {
     if(this._buffer.length > 0) {
-      if(this.busyPromise == null) {
+      if(this.sharedDb.busyPromise == null) {
         let buf = this._buffer;
         this._buffer = [];
-        this.busyPromise = this.db.insertAsync(buf)
-          .then(() => this.busyPromise = null);
-        return this.busyPromise;
+        this.sharedDb.busyPromise = this.sharedDb.db.insertAsync(buf)
+          .then(() => this.sharedDb.busyPromise = null);
+        return this.sharedDb.busyPromise;
       } else {
-        return this.busyPromise
+        return this.sharedDb.busyPromise
           .then(() => this._flushBufferedLogs());
       }
     } else {
