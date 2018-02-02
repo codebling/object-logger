@@ -144,12 +144,4 @@ function parseLogLevel(logLevel, logLevels) {
   throw new Error('Attempt to use an unknown error level')
 }
 
-function getTextualLevel(numericalLevel, logLevels) {
-  for(key in logLevels) {
-    if(logLevels[key] === numericalLevel) {
-      return key;
-    }
-  }
-}
-
 module.exports = ObjectLogger;
