@@ -28,6 +28,13 @@ function fixBufferStats(buffer) {
   }
 }
 
+const dbConstructScript = {
+  nedb: (options) => Promise.promisifyAll(new NeDB(options))
+};
+const dbInitScripts = {
+  nedb: (db) => db.loadDatabaseAsync()
+};
+
 function init(db) {
   return db.loadDatabaseAsync()
     .then(() => db.ensureIndexAsync({fieldName: 'createdAt', sparse: true}))
@@ -76,8 +83,11 @@ class ObjectLogger {
 
     this._buffer = [];
 
-    this.db = Promise.promisifyAll(new NeDB({filename: './log.nedb'}));
-    this.busyPromise = init(this.db)
+    options.db = options.db || {type: 'nedb', options: {filename: './log.nedb'}};
+
+    this.db = dbConstructScript[options.db.type](options.db.options);
+    this.busyPromise = dbInitScripts[options.db.type](this.db)
+      .then(() => init(this.db))
       .then(() => fixBufferStats(this._buffer)) //fix the statless logs in buffer, if any.
       .then(() => this.busyPromise = null)
     ;
