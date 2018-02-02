@@ -1,7 +1,7 @@
 const path = require('path');
 const longjohn = require('longjohn'); //long stack traces
 const Promise = require('bluebird');
-const Datastore = require('nedb');
+const NeDB = require('nedb');
 const Debug = require('debug');
 const StackTrace = require('stacktrace-js');
 
@@ -76,7 +76,7 @@ class ObjectLogger {
 
     this._buffer = [];
 
-    this.db = Promise.promisifyAll(new Datastore({filename: './log.nedb'}));
+    this.db = Promise.promisifyAll(new NeDB({filename: './log.nedb'}));
     this.busyPromise = init(this.db)
       .then(() => fixBufferStats(this._buffer)) //fix the statless logs in buffer, if any.
       .then(() => this.busyPromise = null)
