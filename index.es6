@@ -23,19 +23,11 @@ let run = 0;
 
 function init(db) {
   return db.loadDatabaseAsync()
-    .then(function() {
-      return db.ensureIndexAsync({fieldName: 'createdAt'});
-    })
-    .then(function() {
-      return db.ensureIndexAsync({fieldName: 'logLevel'});
-    })
-    .then(function() {
-      return db.ensureIndexAsync({fieldName: 'component'});
-    })
-    .then(function() {
-      return db.findAsync(runQuery);
-    })
-    .then(function(result) {
+    .then(() => db.ensureIndexAsync({fieldName: 'createdAt'}))
+    .then(() => db.ensureIndexAsync({fieldName: 'logLevel'}))
+    .then(() => db.ensureIndexAsync({fieldName: 'component'}))
+    .then(() => db.findAsync(runQuery))
+    .then((result) => {
       if(result.length > 0)
         run = ++result[0].run;
       return db.updateAsync(runQuery, {run: run}, {upsert: true});
