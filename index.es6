@@ -19,7 +19,7 @@ const defaultLogLevels = {
 const defaultLogLevel = 6;
 
 const runQuery = {run: {$exists: true}};
-let run = 0;
+let run;
 
 function init(db) {
   return db.loadDatabaseAsync()
@@ -30,6 +30,7 @@ function init(db) {
     .then((result) => {
       if(result.length > 0)
         run = ++result[0].run;
+      run = run || 0;
       return db.updateAsync(runQuery, {run: run}, {upsert: true});
     })
   ;
@@ -112,7 +113,7 @@ class ObjectLogger {
     }
     debug = this.debugMap.get(document.component);
 
-    document.run = run;
+    run ? document.run = run : null;
 
     document.primary = primaryObject;
 
