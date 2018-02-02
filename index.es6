@@ -4,8 +4,6 @@ const Datastore = require('nedb');
 const Debug = require('debug');
 const StackTrace = require('stacktrace-js');
 
-let db = Promise.promisifyAll(new Datastore({filename: './log.nedb'}));
-
 const defaultLogLevels = {
   emerg: 0,
   alert: 1,
@@ -22,9 +20,7 @@ const defaultLogLevel = 6;
 const runQuery = {run: {$exists: true}};
 let run = 0;
 
-function getInstance(options) {
-  options = options || {};
-
+function init(db) {
   return db.loadDatabaseAsync()
     .then(function() {
       return db.ensureIndexAsync({fieldName: 'createdAt'});
@@ -43,19 +39,14 @@ function getInstance(options) {
         run = ++result[0].run;
       return db.updateAsync(runQuery, {run: run}, {upsert: true});
     })
-    .then(function(result) {
-      options.db = db;
-      let objectLogger = new ObjectLogger(options);
-      if(options.cb)
-        options.cb(objectLogger);
-
-      return objectLogger;
-    });
+  ;
 }
 
 
 class ObjectLogger {
   constructor(options) {
+    options = options || {};
+    
     if('logLevels' in options)
       this.logLevels = options.logLevels;
     else
@@ -70,8 +61,13 @@ class ObjectLogger {
     this.debugMap = new Map();
     this.debugMap.set(this.defaultComponent, Debug(this.defaultComponent));
 
-    this.isBusy = false;
-    
+
+    this._buffer = [];
+
+    this.db = Promise.promisifyAll(new Datastore({filename: './log.nedb'}));
+    this.busyPromise = init(this.db)
+      .then(() => this.busyPromise = null);
+
     /*
 
     if(nedb)
@@ -92,6 +88,21 @@ class ObjectLogger {
     if(options.stacktrace) //true or false, take a stack trace every log
     */
 
+  }
+  _bufferLog(log) {
+    this._buffer.push(log);
+  }
+  _flushBufferedLogs() {
+    if(this._buffer.length > 0 && this.busyPromise == null) {
+      let buf = this._buffer;
+      this._buffer = [];
+      this.busyPromise = this.db.insertAsync(buf)
+        .then(() => this.busyPromise = null);
+      return this.busyPromise;
+    } else {
+      return this.busyPromise
+        .then(() => this._flushBufferedLogs());
+    }
   }
 
   log(options, primaryObject, extraObject) {
@@ -117,7 +128,9 @@ class ObjectLogger {
     document.stacktrace = StackTrace.getSync(); //a stack trace of "here", in addition to any stack traces that may be in the objects
 
     debug(document.primary);
-    db.insert(document);
+
+    this._bufferLog(document);
+    return this._flushBufferedLogs();
   }
 }
 
@@ -138,5 +151,4 @@ function getTextualLevel(numericalLevel, logLevels) {
   }
 }
 
-module.exports = getInstance;
-module.exports.getInstance = getInstance;
+module.exports = ObjectLogger;
