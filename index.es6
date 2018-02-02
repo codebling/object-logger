@@ -89,15 +89,15 @@ class ObjectLogger {
   _flushBufferedLogs() {
     if(this._buffer.length > 0) {
       if(this.busyPromise == null) {
-      let buf = this._buffer;
-      this._buffer = [];
-      this.busyPromise = this.db.insertAsync(buf)
-        .then(() => this.busyPromise = null);
-      return this.busyPromise;
-    } else {
-      return this.busyPromise
-        .then(() => this._flushBufferedLogs());
-    }
+        let buf = this._buffer;
+        this._buffer = [];
+        this.busyPromise = this.db.insertAsync(buf)
+          .then(() => this.busyPromise = null);
+        return this.busyPromise;
+      } else {
+        return this.busyPromise
+          .then(() => this._flushBufferedLogs());
+      }
     } else {
       return Promise.resolve();
     }
