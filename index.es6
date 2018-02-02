@@ -1,5 +1,5 @@
 const path = require('path');
-require('longjohn'); //long stack traces
+const longjohn = require('longjohn'); //long stack traces
 const Promise = require('bluebird');
 const Datastore = require('nedb');
 const Debug = require('debug');
