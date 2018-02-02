@@ -106,7 +106,7 @@ class ObjectLogger {
     }
   }
 
-  log(options, primaryObject, extraObject) {
+  log(primaryObject, extraObject, options) {
     options = options || {};
 
     let document = {};
