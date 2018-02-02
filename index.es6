@@ -87,7 +87,8 @@ class ObjectLogger {
     this._buffer.push(log);
   }
   _flushBufferedLogs() {
-    if(this._buffer.length > 0 && this.busyPromise == null) {
+    if(this._buffer.length > 0) {
+      if(this.busyPromise == null) {
       let buf = this._buffer;
       this._buffer = [];
       this.busyPromise = this.db.insertAsync(buf)
@@ -96,6 +97,9 @@ class ObjectLogger {
     } else {
       return this.busyPromise
         .then(() => this._flushBufferedLogs());
+    }
+    } else {
+      return Promise.resolve();
     }
   }
 
