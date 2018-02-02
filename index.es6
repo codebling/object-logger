@@ -36,8 +36,7 @@ const dbInitScripts = {
 };
 
 function init(db, stats) {
-  return db.loadDatabaseAsync()
-    .then(() => db.ensureIndexAsync({fieldName: 'createdAt', sparse: true}))
+  return db.ensureIndexAsync({fieldName: 'createdAt', sparse: true})
     .then(() => db.ensureIndexAsync({fieldName: 'logLevel', sparse: true}))
     .then(() => db.ensureIndexAsync({fieldName: 'component', sparse: true}))
     .then(() => db.ensureIndexAsync({fieldName: 'stats.idInAll'}))
