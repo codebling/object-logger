@@ -101,21 +101,7 @@ class ObjectLogger {
       ;
     }
     /*
-
-    if(nedb)
-      //check if instance or just set to use that
-      if(filename)
-        //use filename or default
-    if(mongodb)
-      if(hostname)
-
-    this.sharedDb.db = lazy init db here and only instatiate storage once
-    look out for dependencies trying to set the storage, how can we solve this?
-
-    //accept a winston transport or an alternative logger
-
-    //allow multiple instances which share db but only
-    this.defaultComponent = options.defaultcomponent
+    accept a winston transport or an alternative logger
 
     if(options.stacktrace) //true or false, take a stack trace every log
     */
