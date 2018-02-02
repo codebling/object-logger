@@ -18,20 +18,45 @@ const defaultLogLevels = {
 
 const defaultLogLevel = 6;
 
-const runQuery = {run: {$exists: true}};
-let run;
+let stats;
+
+function fixStats(db) {
+  return Promise.fromCallback((cb) => db.find({stats: {$exists: false}}).sort({createdAt: 1}).exec(cb))
+    .then((results) => {
+      let updatePromises = [];
+      for(let result of results) {
+        let promise = db.updateAsync({_id: result._id},  {$set: {stats: Object.assign({}, stats)}});
+        updatePromises.push(promise);
+        ++stats.idInAll;
+        ++stats.idInRun;
+      }
+      return Promise.all(updatePromises);
+    })
+  ;
+}
 
 function init(db) {
   return db.loadDatabaseAsync()
-    .then(() => db.ensureIndexAsync({fieldName: 'createdAt'}))
-    .then(() => db.ensureIndexAsync({fieldName: 'logLevel'}))
-    .then(() => db.ensureIndexAsync({fieldName: 'component'}))
-    .then(() => db.findAsync(runQuery))
-    .then((result) => {
-      if(result.length > 0)
-        run = ++result[0].run;
-      run = run || 0;
-      return db.updateAsync(runQuery, {run: run}, {upsert: true});
+    .then(() => db.ensureIndexAsync({fieldName: 'createdAt', sparse: true}))
+    .then(() => db.ensureIndexAsync({fieldName: 'logLevel', sparse: true}))
+    .then(() => db.ensureIndexAsync({fieldName: 'component', sparse: true}))
+    .then(() => db.ensureIndexAsync({fieldName: 'stats.idInAll'}))
+    .then(() => db.ensureIndexAsync({fieldName: 'stats.run'}))
+    .then(() => Promise.fromCallback((cb) => db.find({stats: {$exists: true}}).sort({'stats.idInAll': -1}).limit(1).exec(cb))) //find the highest/latest record
+    .then((results) => {
+      if(results.length > 0) {
+        stats = {
+          run: 1 + results[0].stats.run,
+          idInAll: 1 + results[0].stats.idInAll,
+          idInRun: 1
+        };
+      } else {
+        stats = {
+          run: 1,
+          idInAll: 1,
+          idInRun: 1
+        }
+      }
     })
   ;
 }
@@ -60,7 +85,10 @@ class ObjectLogger {
 
     this.db = Promise.promisifyAll(new Datastore({filename: './log.nedb'}));
     this.busyPromise = init(this.db)
-      .then(() => this.busyPromise = null);
+      .then(() => this.busyPromise = null)
+      .then(() => this._flushBufferedLogs()) //force the first run
+      .then(() => fixStats(this.db)) //so that we can add the stats that were missing
+    ;
 
     /*
 
@@ -117,7 +145,11 @@ class ObjectLogger {
     }
     debug = this.debugMap.get(document.component);
 
-    run ? document.run = run : null;
+    if(stats) {
+      document.stats = Object.assign({}, stats); //copy the object, otherwise it could be updated before it is written
+      ++stats.idInAll;
+      ++stats.idInRun;
+    }
 
     document.primary = primaryObject;
 

@@ -1,9 +1,11 @@
 process.env.DEBUG = '*';
 const ObjectLogger = require('object-logger');
 
-ObjectLogger.getInstance({defaultComponent: 'tester:main'})
-  .then(function(logger) {
-    setTimeout(function() {
-      logger.log(null, {data: 'somedata here', warning: 'no warning'});
-    }, 1)
-  });
+let logger = new ObjectLogger();
+logger.log({data: 'somedata here', warning: 'no warning'});
+logger.log({something:'else'});
+logger.log({number:3});
+setTimeout(
+  () => logger.log({afterTimeout: true}),
+  400
+);
