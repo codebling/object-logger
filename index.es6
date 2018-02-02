@@ -20,9 +20,7 @@ const defaultLogLevel = 6;
 
 const dbMap = new Map();
 
-let stats;
-
-function fixBufferStats(buffer) {
+function fixBufferStats(buffer, stats) {
   for(let log of buffer) {
     log.stats = Object.assign({}, stats);
     ++stats.idInAll;
@@ -37,7 +35,7 @@ const dbInitScripts = {
   nedb: (db) => db.loadDatabaseAsync()
 };
 
-function init(db) {
+function init(db, stats) {
   return db.loadDatabaseAsync()
     .then(() => db.ensureIndexAsync({fieldName: 'createdAt', sparse: true}))
     .then(() => db.ensureIndexAsync({fieldName: 'logLevel', sparse: true}))
@@ -47,17 +45,13 @@ function init(db) {
     .then(() => Promise.fromCallback((cb) => db.find({stats: {$exists: true}}).sort({'stats.idInAll': -1}).limit(1).exec(cb))) //find the highest/latest record
     .then((results) => {
       if(results.length > 0) {
-        stats = {
-          run: 1 + results[0].stats.run,
-          idInAll: 1 + results[0].stats.idInAll,
-          idInRun: 1
-        };
+        stats.run = 1 + results[0].stats.run;
+        stats.idInAll = 1 + results[0].stats.idInAll;
+        stats.idInRun = 1;
       } else {
-        stats = {
-          run: 1,
-          idInAll: 1,
-          idInRun: 1
-        }
+        stats.run = 1;
+        stats.idInAll = 1;
+        stats.idInRun = 1;
       }
     })
   ;
@@ -91,15 +85,17 @@ class ObjectLogger {
     if(!this.sharedDb) {
       this.sharedDb = {
         db: dbConstructScript[options.db.type](options.db.options),
-        isInitComplete: false
+        isInitComplete: false,
+        busyPromise: null,
+        stats: {}
       };
       dbMap.set(options.db, this.sharedDb);
     }
 
     if(!this.sharedDb.isInitComplete) {
       this.sharedDb.busyPromise = dbInitScripts[options.db.type](this.sharedDb.db)
-        .then(() => init(this.sharedDb.db))
-        .then(() => fixBufferStats(this._buffer)) //fix the statless logs in buffer, if any.
+        .then(() => init(this.sharedDb.db, this.sharedDb.stats))
+        .then(() => fixBufferStats(this._buffer, this.sharedDb.stats)) //fix the statless logs in buffer, if any.
         .then(() => this.sharedDb.busyPromise = null)
         .then(() => this.sharedDb.isInitComplete = true)
       ;
@@ -159,10 +155,10 @@ class ObjectLogger {
     }
     debug = this.debugMap.get(document.component);
 
-    if(stats) {
-      document.stats = Object.assign({}, stats); //copy the object, otherwise it could be updated before it is written
-      ++stats.idInAll;
-      ++stats.idInRun;
+    if(this.sharedDb.isInitComplete) { //stats are initialised
+      document.stats = Object.assign({}, this.sharedDb.stats); //copy the object, otherwise it could be updated before it is written
+      ++this.sharedDb.stats.idInAll;
+      ++this.sharedDb.stats.idInRun;
     }
 
     document.primary = primaryObject;
