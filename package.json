@@ -10,5 +10,8 @@
     "longjohn": "github:drauggres/longjohn",
     "nedb": "^1.8.0",
     "stacktrace-js": "^2.0.0"
+  },
+  "scripts": {
+    "test": "cd test && npm i && node index.es6 && cd .."
   }
 }

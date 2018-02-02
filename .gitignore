@@ -1,3 +1,4 @@
 .idea/
 node_modules/
 *.nedb
+test/package-lock.json
