@@ -105,7 +105,7 @@ class ObjectLogger {
 
     if(options.stacktrace) //true or false, take a stack trace every log
     */
-
+    this.log = this.log.bind(this);
   }
   _bufferLog(log) {
     this._buffer.push(log);
