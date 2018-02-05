@@ -4,6 +4,7 @@ const Promise = require('bluebird');
 const NeDB = require('nedb');
 const Debug = require('debug');
 const StackTrace = require('stacktrace-js');
+const Map = require('shitty-map');
 
 const defaultLogLevels = {
   emerg: 0,
