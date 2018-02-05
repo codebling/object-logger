@@ -1,5 +1,5 @@
 process.env.DEBUG = '*';
-const ObjectLogger = require('object-logger');
+const ObjectLogger = require('../index.es6');
 
 let logger = new ObjectLogger();
 logger.log({data: 'somedata here', warning: 'no warning'});
