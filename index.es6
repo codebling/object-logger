@@ -19,7 +19,7 @@ const defaultLogLevels = {
 
 const defaultLogLevel = 6;
 
-const dbMap = new Map();
+const sharedDbs = new Map();
 
 function fixBufferStats(buffer, stats) {
   for(let log of buffer) {
@@ -81,7 +81,7 @@ class ObjectLogger {
 
     options.db = options.db || {type: 'nedb', options: {filename: './log.nedb'}};
 
-    this.sharedDb = dbMap.get(options.db);
+    this.sharedDb = sharedDbs.get(options.db);
     if(!this.sharedDb) {
       this.sharedDb = {
         db: dbConstructScript[options.db.type](options.db.options),
@@ -89,7 +89,7 @@ class ObjectLogger {
         busyPromise: null,
         stats: {}
       };
-      dbMap.set(options.db, this.sharedDb);
+      sharedDbs.set(options.db, this.sharedDb);
     }
 
     if(!this.sharedDb.isInitComplete) {
