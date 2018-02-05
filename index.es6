@@ -1,7 +1,7 @@
 const path = require('path');
 const longjohn = require('longjohn'); //long stack traces
 const Promise = require('bluebird');
-const NeDB = require('nedb');
+const NeDB = require('nedb-core');
 const Debug = require('debug');
 const StackTrace = require('stacktrace-js');
 const Map = require('shitty-map');
