@@ -106,6 +106,7 @@ class ObjectLogger {
     if(options.stacktrace) //true or false, take a stack trace every log
     */
     this.log = this.log.bind(this);
+    this.data = this.data.bind(this);
   }
   _bufferLog(log) {
     this._buffer.push(log);
@@ -127,7 +128,7 @@ class ObjectLogger {
     }
   }
 
-  log(primaryObject, extraObject, options) {
+  data(primaryObject, extraObject, options) {
     options = options || {};
 
     let document = {};
@@ -135,11 +136,6 @@ class ObjectLogger {
     document.logLevel = 'logLevel' in options ? parseLogLevel(options.logLevel, this.logLevels) : parseLogLevel(this.defaultLogLevel, this.logLevels);
     document.component = this.defaultComponent;
     'component' in options ? document.component = options.component : null;
-    let debug;
-    if(!this.debugMap.has(document.component)) {
-      this.debugMap.set(document.component, Debug(document.component));
-    }
-    debug = this.debugMap.get(document.component);
 
     if(this.sharedDb.isInitComplete) { //stats are initialised
       document.stats = Object.assign({}, this.sharedDb.stats); //copy the object, otherwise it could be updated before it is written
@@ -153,10 +149,23 @@ class ObjectLogger {
 
     document.stacktrace = StackTrace.getSync(); //a stack trace of "here", in addition to any stack traces that may be in the objects
 
-    debug(document.primary);
-
     this._bufferLog(document);
     return this._flushBufferedLogs();
+  }
+
+  log(primaryObject, extraObject, options) {
+    options = options || {};
+
+    const component = 'component' in options ? options.component : this.defaultComponent;
+
+    if(!this.debugMap.has(component)) {
+      this.debugMap.set(component, Debug(component));
+    }
+    const debug = this.debugMap.get(component);
+
+    debug(primaryObject);
+
+    this.data(primaryObject, extraObject, options);
   }
 }
 
