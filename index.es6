@@ -86,13 +86,15 @@ class ObjectLogger {
       this.sharedDb = {
         db: dbConstructScript[options.db.type](options.db.options),
         isInitComplete: false,
+        isInitStarted: false,
         busyPromise: null,
         stats: {}
       };
       sharedDbs.set(options.db, this.sharedDb);
     }
 
-    if(!this.sharedDb.isInitComplete) {
+    if(!this.sharedDb.isInitComplete && !this.sharedDb.isInitStarted) {
+      this.sharedDb.isInitStarted = true;
       this.sharedDb.busyPromise = dbInitScripts[options.db.type](this.sharedDb.db)
         .then(() => init(this.sharedDb.db, this.sharedDb.stats))
         .then(() => fixBufferStats(this._buffer, this.sharedDb.stats)) //fix the statless logs in buffer, if any.
