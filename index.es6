@@ -1,10 +1,11 @@
 const path = require('path');
 const longjohn = require('longjohn'); //long stack traces
 const Promise = require('bluebird');
-const NeDB = require('nedb-core');
 const Debug = require('debug');
 const StackTrace = require('stacktrace-js');
 const Map = require('shitty-map');
+//deferred requires:
+//require('nedb-core');
 
 const defaultLogLevels = {
   emerg: 0,
@@ -30,7 +31,7 @@ function fixBufferStats(buffer, stats) {
 }
 
 const dbConstructScript = {
-  nedb: (options) => Promise.promisifyAll(new NeDB(options))
+  nedb: (options) => Promise.promisifyAll(new require('nedb-core')(options))
 };
 const dbInitScripts = {
   nedb: (db) => db.loadDatabaseAsync()
