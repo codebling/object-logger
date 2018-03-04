@@ -1,11 +1,11 @@
 const path = require('path');
-const longjohn = require('longjohn'); //long stack traces
 const Promise = require('bluebird');
 const Debug = require('debug');
 const StackTrace = require('stacktrace-js');
 const Map = require('shitty-map');
 //deferred requires:
 //require('nedb-core');
+//require('longjohn') //long stack traces
 
 const defaultLogLevels = {
   emerg: 0,
@@ -72,6 +72,10 @@ class ObjectLogger {
       this.defaultLogLevel = options.defaultLogLevel;
     else
       this.defaultLogLevel = defaultLogLevel;
+
+    if(!'useLongStackTraces' in options || options.useLongStackTraces) {
+      require('longjohn'); //simple require is enough to initialise long stack traces
+    }
 
     this.defaultComponent = 'defaultComponent' in options ? options.defaultComponent : path.basename(path.resolve('./'));
     this.debugMap = new Map();
