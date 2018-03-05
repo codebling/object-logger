@@ -43,13 +43,19 @@ const dbInitScripts = {
     .then((db) => Promise.promisifyAll(db))
 };
 
-function init(db, stats) {
-  return db.ensureIndexAsync({fieldName: 'createdAt', sparse: true})
+const indexInit = {
+  nedb: (db, stats) => db.ensureIndexAsync({fieldName: 'createdAt', sparse: true})
     .then(() => db.ensureIndexAsync({fieldName: 'logLevel', sparse: true}))
     .then(() => db.ensureIndexAsync({fieldName: 'component', sparse: true}))
     .then(() => db.ensureIndexAsync({fieldName: 'stats.idInAll'}))
-    .then(() => db.ensureIndexAsync({fieldName: 'stats.run'}))
-    .then(() => Promise.fromCallback((cb) => db.find({stats: {$exists: true}}).sort({'stats.idInAll': -1}).limit(1).exec(cb))) //find the highest/latest record
+    .then(() => db.ensureIndexAsync({fieldName: 'stats.run'})),
+  mongodb: (db, stats) => db.ensureIndexAsync({createdAt: 1})
+    .then(() => db.ensureIndexAsync({logLevel: 1}))
+    .then(() => db.ensureIndexAsync({component: 1}))
+    .then(() => db.ensureIndexAsync({stats: 1}))
+}
+function init(db, stats) {
+    Promise.fromCallback((cb) => db.find({stats: {$exists: true}}).sort({'stats.idInAll': -1}).limit(1).exec(cb)) //find the highest/latest record
     .then((results) => {
       if(results.length > 0) {
         stats.run = 1 + results[0].stats.run;
@@ -107,6 +113,7 @@ class ObjectLogger {
       this.sharedDb.isInitStarted = true;
       this.sharedDb.busyPromise = dbInitScripts[options.db.type](dbConstructScript[options.db.type](options.db.options), options.db.options)
         .then((db) => this.sharedDb.db = db)
+        .then(() => indexInit[options.db.type](this.sharedDb.db, this.sharedDb.stats))
         .then(() => init(this.sharedDb.db, this.sharedDb.stats))
         .then(() => fixBufferStats(this._buffer, this.sharedDb.stats)) //fix the statless logs in buffer, if any.
         .then(() => this.sharedDb.busyPromise = null)
