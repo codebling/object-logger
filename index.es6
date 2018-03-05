@@ -40,6 +40,7 @@ const dbInitScripts = {
   mongodb: (mongoClient, options) => mongoClient.connect(options.url, options)
     .then((mongoClient) => mongoClient.db(options.db, options))
     .then((db) => Promise.fromCallback((cb) => db.collection(options.collection, options, cb)))
+    .then((db) => Promise.promisifyAll(db))
 };
 
 function init(db, stats) {
