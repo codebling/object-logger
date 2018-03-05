@@ -31,7 +31,7 @@ function fixBufferStats(buffer, stats) {
 }
 
 const dbConstructScript = {
-  nedb: (options) => Promise.promisifyAll(new require('nedb-core')(options))
+  nedb: (options) => Promise.promisifyAll(new (require('nedb-core'))(options))
 };
 const dbInitScripts = {
   nedb: (db) => db.loadDatabaseAsync().then(() => db)
