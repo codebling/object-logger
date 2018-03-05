@@ -34,7 +34,7 @@ const dbConstructScript = {
   nedb: (options) => Promise.promisifyAll(new require('nedb-core')(options))
 };
 const dbInitScripts = {
-  nedb: (db) => db.loadDatabaseAsync()
+  nedb: (db) => db.loadDatabaseAsync().then(() => db)
 };
 
 function init(db, stats) {
@@ -101,6 +101,7 @@ class ObjectLogger {
     if(!this.sharedDb.isInitComplete && !this.sharedDb.isInitStarted) {
       this.sharedDb.isInitStarted = true;
       this.sharedDb.busyPromise = dbInitScripts[options.db.type](this.sharedDb.db)
+        .then((db) => this.sharedDb.db = db)
         .then(() => init(this.sharedDb.db, this.sharedDb.stats))
         .then(() => fixBufferStats(this._buffer, this.sharedDb.stats)) //fix the statless logs in buffer, if any.
         .then(() => this.sharedDb.busyPromise = null)
