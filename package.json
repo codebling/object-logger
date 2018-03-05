@@ -8,6 +8,7 @@
     "bluebird": "^3.5.1",
     "debug": "^3.1.0",
     "longjohn": "github:drauggres/longjohn",
+    "mongodb": "^3.0.3",
     "nedb-core": "github:codebling/nedb-core#circular-objs",
     "shitty-map": "github:codebling/shitty-map",
     "stacktrace-js": "^2.0.0"

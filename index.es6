@@ -6,6 +6,7 @@ const Map = require('shitty-map');
 //deferred requires:
 //require('nedb-core');
 //require('longjohn') //long stack traces
+//require('mongodb')
 
 const defaultLogLevels = {
   emerg: 0,
@@ -31,10 +32,14 @@ function fixBufferStats(buffer, stats) {
 }
 
 const dbConstructScript = {
-  nedb: (options) => Promise.promisifyAll(new (require('nedb-core'))(options))
+  nedb: (options) => Promise.promisifyAll(new (require('nedb-core'))(options)),
+  mongodb: (options) => require('mongodb').MongoClient
 };
 const dbInitScripts = {
-  nedb: (db) => db.loadDatabaseAsync().then(() => db)
+  nedb: (db) => db.loadDatabaseAsync().then(() => db),
+  mongodb: (mongoClient, options) => mongoClient.connect(options.url, options)
+    .then((mongoClient) => mongoClient.db(options.db, options))
+    .then((db) => Promise.fromCallback((cb) => db.collection(options.collection, options, cb)))
 };
 
 function init(db, stats) {
@@ -99,7 +104,7 @@ class ObjectLogger {
 
     if(!this.sharedDb.isInitComplete && !this.sharedDb.isInitStarted) {
       this.sharedDb.isInitStarted = true;
-      this.sharedDb.busyPromise = dbInitScripts[options.db.type](dbConstructScript[options.db.type](options.db.options))
+      this.sharedDb.busyPromise = dbInitScripts[options.db.type](dbConstructScript[options.db.type](options.db.options), options.db.options)
         .then((db) => this.sharedDb.db = db)
         .then(() => init(this.sharedDb.db, this.sharedDb.stats))
         .then(() => fixBufferStats(this._buffer, this.sharedDb.stats)) //fix the statless logs in buffer, if any.
