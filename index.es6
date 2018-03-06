@@ -58,7 +58,7 @@ const indexInit = {
 };
 
 function init(type, db, stats) {
-  indexInit[type](db, stats)
+  return indexInit[type](db, stats)
     .then((results) => {
       if(results.length > 0) {
         stats.run = 1 + results[0].stats.run;
