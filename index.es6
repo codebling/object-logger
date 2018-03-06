@@ -53,7 +53,8 @@ const indexInit = {
     .then(() => db.ensureIndexAsync({logLevel: 1}))
     .then(() => db.ensureIndexAsync({component: 1}))
     .then(() => db.ensureIndexAsync({stats: 1}))
-}
+};
+
 function init(db, stats) {
     Promise.fromCallback((cb) => db.find({stats: {$exists: true}}).sort({'stats.idInAll': -1}).limit(1).exec(cb)) //find the highest/latest record
     .then((results) => {
