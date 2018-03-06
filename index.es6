@@ -96,9 +96,6 @@ class ObjectLogger {
     this.debugMap = new Map();
     this.debugMap.set(this.defaultComponent, Debug(this.defaultComponent));
 
-
-    this._buffer = [];
-
     options.db = options.db || {type: 'nedb', options: {filename: './log.nedb'}};
 
     this.sharedDb = sharedDbs.get(options.db);
@@ -107,6 +104,7 @@ class ObjectLogger {
         isInitComplete: false,
         isInitStarted: false,
         busyPromise: null,
+        buffer: [],
         stats: {}
       };
       sharedDbs.set(options.db, this.sharedDb);
@@ -117,7 +115,7 @@ class ObjectLogger {
       this.sharedDb.busyPromise = dbInitScripts[options.db.type](dbConstructScript[options.db.type](options.db.options), options.db.options)
         .then((db) => this.sharedDb.db = db)
         .then(() => init(options.db.type, this.sharedDb.db, this.sharedDb.stats))
-        .then(() => fixBufferStats(this._buffer, this.sharedDb.stats)) //fix the statless logs in buffer, if any.
+        .then(() => fixBufferStats(this.sharedDb.buffer, this.sharedDb.stats)) //fix the statless logs in buffer, if any.
         .then(() => this.sharedDb.busyPromise = null)
         .then(() => this.sharedDb.isInitComplete = true)
       ;
@@ -131,13 +129,13 @@ class ObjectLogger {
     this.data = this.data.bind(this);
   }
   _bufferLog(log) {
-    this._buffer.push(log);
+    this.sharedDb.buffer.push(log);
   }
   _flushBufferedLogs() {
-    if(this._buffer.length > 0) {
+    if(this.sharedDb.buffer.length > 0) {
       if(this.sharedDb.busyPromise == null) {
-        let buf = this._buffer;
-        this._buffer = [];
+        let buf = this.sharedDb.buffer;
+        this.sharedDb.buffer = [];
         this.sharedDb.busyPromise = this.sharedDb.db.insertAsync(buf)
           .then(() => this.sharedDb.busyPromise = null);
         return this.sharedDb.busyPromise;
