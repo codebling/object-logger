@@ -185,7 +185,7 @@ class ObjectLogger {
 
     debug(primaryObject);
 
-    this.data(primaryObject, extraObject, options);
+    return this.data(primaryObject, extraObject, options);
   }
 }
 
