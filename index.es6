@@ -170,7 +170,7 @@ class ObjectLogger {
     document.stacktrace = StackTrace.getSync(); //a stack trace of "here", in addition to any stack traces that may be in the objects
 
     this._bufferLog(document);
-    return this._flushBufferedLogs();
+    return Promise.resolve(this._flushBufferedLogs());
   }
 
   log(primaryObject, extraObject, options) {
