@@ -89,7 +89,7 @@ class ObjectLogger {
     else
       this.defaultLogLevel = defaultLogLevel;
 
-    if(!'useLongStackTraces' in options || options.useLongStackTraces) {
+    if(process.env.USELONGSTACKTRACES === 'true' || !'useLongStackTraces' in options || options.useLongStackTraces) {
       require('longjohn'); //simple require is enough to initialise long stack traces
     }
 
