@@ -3,6 +3,7 @@ const Promise = require('bluebird');
 const Debug = require('debug');
 const StackTrace = require('stacktrace-js');
 const Map = require('shitty-map');
+const recursivelyReplaceError = require('./recursively-replace-error.es6');
 //deferred requires:
 //require('nedb-core');
 //require('longjohn') //long stack traces
@@ -163,9 +164,9 @@ class ObjectLogger {
       ++this.sharedDb.stats.idInRun;
     }
 
-    document.primary = primaryObject;
+    document.primary = recursivelyReplaceError(primaryObject);
 
-    document.extra = extraObject;
+    document.extra = recursivelyReplaceError(extraObject);
 
     document.stacktrace = StackTrace.getSync(); //a stack trace of "here", in addition to any stack traces that may be in the objects
 
