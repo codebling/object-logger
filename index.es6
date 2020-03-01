@@ -6,7 +6,7 @@ const Map = require('shitty-map');
 const recursivelyReplaceError = require('./recursively-replace-error.es6');
 //deferred requires:
 //require('nedb-core');
-//require('longjohn') //long stack traces
+//require('@haggholm/longjohn') //long stack traces
 //require('mongodb')
 
 const defaultLogLevels = {
@@ -90,7 +90,7 @@ class ObjectLogger {
       this.defaultLogLevel = defaultLogLevel;
 
     if(process.env.USELONGSTACKTRACES === 'true' || !'useLongStackTraces' in options || options.useLongStackTraces) {
-      require('longjohn'); //simple require is enough to initialise long stack traces
+      require('@haggholm/longjohn'); //simple require is enough to initialise long stack traces
     }
 
     this.defaultComponent = 'defaultComponent' in options ? options.defaultComponent : path.basename(path.resolve('./'));

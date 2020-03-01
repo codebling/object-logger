@@ -5,10 +5,10 @@
   "private": true,
   "license": "UNLICENSED",
   "dependencies": {
+    "@haggholm/longjohn": "github:haggholm/longjohn#d60f056",
     "bluebird": "^3.5.1",
     "debug": "^3.1.0",
     "error-stack-parser": "^2.0.1",
-    "longjohn": "github:drauggres/longjohn",
     "mongodb": "^3.0.3",
     "nedb-core": "github:codebling/nedb-core#circular-objs",
     "shitty-map": "github:codebling/shitty-map",
