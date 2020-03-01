@@ -3,7 +3,7 @@ const Promise = require('bluebird');
 const Debug = require('debug');
 const StackTrace = require('stacktrace-js');
 const Map = require('shitty-map');
-const recursivelyReplaceError = require('./recursively-replace-error.es6');
+const recursivelyReplaceError = require('./recursively-replace-error');
 //deferred requires:
 //require('nedb-core');
 //require('@haggholm/longjohn') //long stack traces

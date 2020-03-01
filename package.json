@@ -15,6 +15,6 @@
     "stacktrace-js": "^2.0.2"
   },
   "scripts": {
-    "test": "cd test && npm i && node index.es6 && cd .."
+    "test": "cd test && npm i && node index.js && cd .."
   }
 }
