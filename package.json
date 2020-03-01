@@ -6,13 +6,13 @@
   "license": "UNLICENSED",
   "dependencies": {
     "@haggholm/longjohn": "github:haggholm/longjohn#d60f056",
-    "bluebird": "^3.5.1",
-    "debug": "^3.1.0",
-    "error-stack-parser": "^2.0.1",
-    "mongodb": "^3.0.3",
+    "bluebird": "^3.7.2",
+    "debug": "^3.2.6",
+    "error-stack-parser": "^2.0.6",
+    "mongodb": "^3.5.4",
     "nedb-core": "github:codebling/nedb-core#circular-objs",
     "shitty-map": "github:codebling/shitty-map",
-    "stacktrace-js": "^2.0.0"
+    "stacktrace-js": "^2.0.2"
   },
   "scripts": {
     "test": "cd test && npm i && node index.es6 && cd .."
