@@ -1,7 +1,7 @@
 {
   "name": "object-logger",
   "version": "1.0.0",
-  "main": "index.es6",
+  "main": "index.js",
   "private": true,
   "license": "UNLICENSED",
   "dependencies": {
