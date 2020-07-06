@@ -8,6 +8,7 @@ const recursivelyReplaceError = require('./recursively-replace-error');
 //require('nedb-core');
 //require('@haggholm/longjohn') //long stack traces
 //require('mongodb')
+let aql;
 
 const defaultLogLevels = {
   emerg: 0,
@@ -34,14 +35,37 @@ function fixBufferStats(buffer, stats) {
 
 const dbConstructScript = {
   nedb: (options) => Promise.promisifyAll(new (require('nedb-core'))(options)),
-  mongodb: (options) => require('mongodb').MongoClient
+  mongodb: (options) => require('mongodb').MongoClient,
+  arango: (options) => {
+    const arango = require('arangojs');
+    aql = arango.aql;
+    return arango.Database;
+  },
 };
 const dbInitScripts = {
   nedb: (db) => db.loadDatabaseAsync().then(() => db),
   mongodb: (mongoClient, options) => mongoClient.connect(options.url, options)
     .then((mongoClient) => mongoClient.db(options.db, options))
     .then((db) => Promise.fromCallback((cb) => db.collection(options.collection, options, cb)))
-    .then((db) => Promise.promisifyAll(db))
+    .then((db) => Promise.promisifyAll(db)),
+  arango: async (databaseClient, options) => {
+    const databaseOptions = options.url ? {url: options.url} : null;
+    const databaseName = options.database || 'logger';
+    const collectionName = options.collection || 'logs';
+
+    const db = new databaseClient(databaseOptions);
+    db.useDatabase(databaseName);
+    if (!await db.exists()) {
+      db.useDatabase('_system');
+      await db.createDatabase(databaseName);
+      db.useDatabase(databaseName);
+    }
+    const collection = db.useCollection(collectionName);
+    if (!await collection.exists()) {
+      await collection.create();
+    }
+    return collection;
+  },
 };
 
 const indexInit = {
@@ -55,7 +79,23 @@ const indexInit = {
     .then(() => db.ensureIndexAsync({logLevel: 1}))
     .then(() => db.ensureIndexAsync({component: 1}))
     .then(() => db.ensureIndexAsync({stats: 1}))
-    .then(() => Promise.fromCallback((cb) => db.find({stats: {$exists: true}}).sort({'stats.idInAll': -1}).limit(1).toArray(cb))) //find the highest/latest record
+    .then(() => Promise.fromCallback((cb) => db.find({stats: {$exists: true}}).sort({'stats.idInAll': -1}).limit(1).toArray(cb))), //find the highest/latest record
+  arango: async (collection) => {
+    const promises = [];
+    promises.push(collection.createPersistentIndex(['createdAt']));
+    promises.push(collection.createPersistentIndex(['logLevel']));
+    promises.push(collection.createPersistentIndex(['component']));
+    promises.push(collection.createPersistentIndex(['stats']));
+    const cursor = await collection.query(aql`
+      FOR d IN ${collection}
+        FILTER d.stats != null
+        SORT d.stats.idInAll DESC
+        LIMIT 1
+      RETRUN d
+    `);
+    await Promise.all(promises); //make sure all the indexes have been created before we continue
+    return await cursor.next();
+  }
 };
 
 function init(type, db, stats) {
