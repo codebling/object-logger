@@ -44,9 +44,9 @@ const dbConstructScript = {
 };
 const dbInitScripts = {
   nedb: (db) => db.loadDatabaseAsync().then(() => db),
-  mongodb: (mongoClient, options) => mongoClient.connect(options.url, options)
-    .then((mongoClient) => mongoClient.db(options.db, options))
-    .then((db) => Promise.fromCallback((cb) => db.collection(options.collection, options, cb)))
+  mongodb: (mongoClient, options) => mongoClient.connect(options.url, options.dbConnectOptions)
+    .then((mongoClient) => mongoClient.db(options.db))
+    .then((db) => Promise.fromCallback((cb) => db.collection(options.collection, cb)))
     .then((db) => Promise.promisifyAll(db)),
   arango: async (databaseClient, options) => {
     const databaseOptions = options.url ? {url: options.url} : null;
